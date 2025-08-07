@@ -8,6 +8,7 @@ import (
 
 	"github.com/KeviinMoralees/gocourse_user/infrastructure/entrypoints/rest/handlers/read"
 	"github.com/KeviinMoralees/gocourse_user/infrastructure/entrypoints/rest/handlers/writer"
+	"github.com/gorilla/mux"
 )
 
 func main() {
@@ -24,7 +25,7 @@ func main() {
 	validateRole(role)
 
 	// Setup routes based on role
-	mux := setupRoutes(role)
+	router := setupRoutes(role)
 
 	// Start server
 	port := ":8081"
@@ -34,45 +35,45 @@ func main() {
 	switch role {
 	case "writer":
 		fmt.Println("   POST /users")
-		fmt.Println("   PUT  /users/update")
-		fmt.Println("   DELETE /users/delete")
+		fmt.Println("   PUT  /users/{id}")
+		fmt.Println("   DELETE /users/{id}")
 	case "read":
-		fmt.Println("   GET  /users/hello")
-		fmt.Println("   GET  /users/goodbye")
+		fmt.Println("   GET  /users")
+		fmt.Println("   GET  /users/{id}")
 	case "all":
-		fmt.Println("   GET  /users/hello")
-		fmt.Println("   GET  /users/goodbye")
+		fmt.Println("   GET  /users")
+		fmt.Println("   GET  /users/{id}")
 		fmt.Println("   POST /users")
-		fmt.Println("   PUT  /users/update")
-		fmt.Println("   DELETE /users/delete")
+		fmt.Println("   PUT  /users/{id}")
+		fmt.Println("   DELETE /users/{id}")
 	}
 
-	log.Fatal(http.ListenAndServe(port, mux))
+	log.Fatal(http.ListenAndServe(port, router))
 }
 
-// setupRoutes configures all REST API routes using net/http based on role
-func setupRoutes(role string) *http.ServeMux {
-	mux := http.NewServeMux()
+// setupRoutes configures all REST API routes using gorilla/mux based on role
+func setupRoutes(role string) *mux.Router {
+	router := mux.NewRouter()
 
 	// Register routes based on role
 	switch role {
 	case "read":
 		fmt.Println("📖 Setting up READ-only routes...")
-		read.SetupReadRoutes(mux)
+		read.SetupReadRoutes(router)
 	case "writer":
 		fmt.Println("✍️ Setting up WRITE-only routes...")
-		writer.SetupWriterRoutes(mux)
+		writer.SetupWriterRoutes(router)
 	case "all":
 		fmt.Println("🔄 Setting up ALL routes...")
-		read.SetupReadRoutes(mux)
-		writer.SetupWriterRoutes(mux)
+		read.SetupReadRoutes(router)
+		writer.SetupWriterRoutes(router)
 	default:
 		fmt.Println("⚠️ Invalid role, defaulting to ALL routes...")
-		read.SetupReadRoutes(mux)
-		writer.SetupWriterRoutes(mux)
+		read.SetupReadRoutes(router)
+		writer.SetupWriterRoutes(router)
 	}
 
-	return mux
+	return router
 }
 
 // validateRole validates the role and provides feedback
